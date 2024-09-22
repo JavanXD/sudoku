@@ -20,8 +20,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Sudoku Generator Tool | sudoku.javan.de">
     <meta name="twitter:description" content="Generate and copy Sudoku puzzles with varying difficulty. A great tool for Sudoku lovers!">
-    <meta name="twitter:image" content="https://sudoku.javan.de/your-image.jpg" /> <!-- Replace with your image URL -->
-    
+ 
         <meta name="keywords" content="Sudoku generator, Sudoku puzzle, Sudoku solution, generate Sudoku, copy Sudoku">
     <meta name="robots" content="index, follow">
     <title>Sudoku Generator Tool</title>
@@ -144,9 +143,21 @@
                 flex-direction: column;
             }
         }
+
+        /* Ensure min-width for Sudoku container so it doesn’t shrink on small screens */
+        .puzzle-container {
+            min-width: 450px; /* Set the minimum width for Sudoku grids */
+        }
+
+        /* Ensure canvas doesn't shrink and has proper aspect ratio for printing */
+        canvas {
+            image-rendering: auto; /* Ensures smooth rendering */
+            width: 100%; /* Keep it responsive */
+            height: auto;
+        }
+
     </style>
 </head>
-
 <body>
     <div class="container">
         <h1>Sudoku Generator Tool</h1>
@@ -154,8 +165,7 @@
         <div class="description">
             <p>
                 This tool allows you to generate Sudoku puzzles of various difficulty levels. You can copy the puzzle and
-                its solution to your clipboard and easily paste them into other applications. Choose the number of
-                puzzles, difficulty, and hide or show the solutions.
+                its solution to your clipboard and easily paste them into other applications.
             </p>
         </div>
 
@@ -179,121 +189,142 @@
                     <input type="checkbox" id="hideSolutionsCheckbox"> Hide Solutions
                 </label>
             </div>
+
+            <!-- New input fields for pixel sizes -->
+            <div>
+                <label for="puzzleClipboardSize">Puzzle Clipboard Size (px): </label>
+                <input type="number" id="puzzleClipboardSize" value="800">
+            </div>
+            <div>
+                <label for="solutionClipboardSize">Solution Clipboard Size (px): </label>
+                <input type="number" id="solutionClipboardSize" value="400">
+            </div>
         </div>
 
         <div id="sudokuContainer"></div>
     </div>
 
     <script>
-        const GRID_SIZE = 9;
-        const SUBGRID_SIZE = 3;
-        const EMPTY = 0;
+    const GRID_SIZE = 9;
+    const SUBGRID_SIZE = 3;
+    const EMPTY = 0;
 
-        document.addEventListener("DOMContentLoaded", () => {
-            loadSettings();
-            generateSudokus(); // Generate based on loaded settings
-            document.getElementById('difficulty').addEventListener('change', generateSudokus);
-            document.getElementById('numPuzzles').addEventListener('input', generateSudokus);
-            document.getElementById('hideSolutionsCheckbox').addEventListener('change', toggleSolutions);
+    document.addEventListener("DOMContentLoaded", () => {
+        loadSettings();
+        generateSudokus();
+        document.getElementById('difficulty').addEventListener('change', generateSudokus);
+        document.getElementById('numPuzzles').addEventListener('input', generateSudokus);
+        document.getElementById('hideSolutionsCheckbox').addEventListener('change', toggleSolutions);
+
+        // Trigger sudoku generation when the pixel size changes
+        document.getElementById('puzzleClipboardSize').addEventListener('input', () => {
+            saveSettings();
+            generateSudokus(); // Re-generate sudokus on pixel size change
         });
+        document.getElementById('solutionClipboardSize').addEventListener('input', () => {
+            saveSettings();
+            generateSudokus(); // Re-generate sudokus on pixel size change
+        });
+    });
 
-        function loadSettings() {
-            const savedDifficulty = localStorage.getItem('difficulty') || 'medium';
-            const savedNumPuzzles = localStorage.getItem('numPuzzles') || '1';
-            const hideSolutions = localStorage.getItem('hideSolutions') === 'true';
+    function loadSettings() {
+        const savedDifficulty = localStorage.getItem('difficulty') || 'medium';
+        const savedNumPuzzles = localStorage.getItem('numPuzzles') || '1';
+        const hideSolutions = localStorage.getItem('hideSolutions') === 'true';
+        const puzzleClipboardSize = localStorage.getItem('puzzleClipboardSize') || '800';
+        const solutionClipboardSize = localStorage.getItem('solutionClipboardSize') || '400';
 
-            document.getElementById('difficulty').value = savedDifficulty;
-            document.getElementById('numPuzzles').value = savedNumPuzzles;
-            document.getElementById('hideSolutionsCheckbox').checked = hideSolutions;
+        document.getElementById('difficulty').value = savedDifficulty;
+        document.getElementById('numPuzzles').value = savedNumPuzzles;
+        document.getElementById('hideSolutionsCheckbox').checked = hideSolutions;
+        document.getElementById('puzzleClipboardSize').value = puzzleClipboardSize;
+        document.getElementById('solutionClipboardSize').value = solutionClipboardSize;
+    }
+
+    function saveSettings() {
+        const difficulty = document.getElementById('difficulty').value;
+        const numPuzzles = document.getElementById('numPuzzles').value;
+        const hideSolutions = document.getElementById('hideSolutionsCheckbox').checked;
+        const puzzleClipboardSize = document.getElementById('puzzleClipboardSize').value;
+        const solutionClipboardSize = document.getElementById('solutionClipboardSize').value;
+
+        localStorage.setItem('difficulty', difficulty);
+        localStorage.setItem('numPuzzles', numPuzzles);
+        localStorage.setItem('hideSolutions', hideSolutions);
+        localStorage.setItem('puzzleClipboardSize', puzzleClipboardSize);
+        localStorage.setItem('solutionClipboardSize', solutionClipboardSize);
+    }
+
+    function toggleSolutions() {
+        const solutions = document.querySelectorAll('.solution-container');
+        const hideSolutions = document.getElementById('hideSolutionsCheckbox').checked;
+        solutions.forEach(solution => {
+            solution.classList.toggle('hide-solutions', hideSolutions);
+        });
+    }
+
+    function createSudokuHTML(puzzleGrid, solutionGrid, puzzleNum, hideSolutions) {
+        const puzzleClipboardSize = document.getElementById('puzzleClipboardSize').value;
+        const solutionClipboardSize = document.getElementById('solutionClipboardSize').value;
+        const solutionClass = hideSolutions ? 'hide-solutions' : '';
+        return `
+            <div class="puzzle-container">
+                <h2>Puzzle #${puzzleNum}</h2>
+                <div style="display: flex; align-items: flex-start;">
+                    <div>
+                        <table>${gridToHTML(puzzleGrid)}</table>
+                        <button onclick="copyGridToClipboard('${gridToDataURL(puzzleGrid, 1, puzzleClipboardSize)}', ${puzzleClipboardSize})">Copy Puzzle to Clipboard</button>
+                    </div>
+                    <div class="solution-container ${solutionClass}">
+                        <table class="solution">${gridToHTML(solutionGrid)}</table>
+                        <button class="solution-button" onclick="copyGridToClipboard('${gridToDataURL(solutionGrid, 1, solutionClipboardSize)}', ${solutionClipboardSize})">Copy Solution to Clipboard</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function toggleSolutions() {
+        const solutions = document.querySelectorAll('.solution-container');
+        const hideSolutions = document.getElementById('hideSolutionsCheckbox').checked;
+        solutions.forEach(solution => {
+            solution.classList.toggle('hide-solutions', hideSolutions);
+        });
+    }
+
+    function isSafe(grid, row, col, num) {
+        for (let x = 0; x < GRID_SIZE; x++) {
+            if (grid[row][x] === num || grid[x][col] === num) {
+                return false;
+            }
         }
-
-        function saveSettings() {
-            const difficulty = document.getElementById('difficulty').value;
-            const numPuzzles = document.getElementById('numPuzzles').value;
-            const hideSolutions = document.getElementById('hideSolutionsCheckbox').checked;
-
-            localStorage.setItem('difficulty', difficulty);
-            localStorage.setItem('numPuzzles', numPuzzles);
-            localStorage.setItem('hideSolutions', hideSolutions);
-        }
-
-        function toggleSolutions() {
-            const solutions = document.querySelectorAll('.solution-container');
-            const hideSolutions = document.getElementById('hideSolutionsCheckbox').checked;
-            solutions.forEach(solution => {
-                solution.classList.toggle('hide-solutions', hideSolutions);
-            });
-        }
-
-        function isSafe(grid, row, col, num) {
-            for (let x = 0; x < GRID_SIZE; x++) {
-                if (grid[row][x] === num || grid[x][col] === num) {
+        const startRow = row - row % SUBGRID_SIZE;
+        const startCol = col - col % SUBGRID_SIZE;
+        for (let i = 0; i < SUBGRID_SIZE; i++) {
+            for (let j = 0; j < SUBGRID_SIZE; j++) {
+                if (grid[i + startRow][j + startCol] === num) {
                     return false;
                 }
             }
-            const startRow = row - row % SUBGRID_SIZE;
-            const startCol = col - col % SUBGRID_SIZE;
-            for (let i = 0; i < SUBGRID_SIZE; i++) {
-                for (let j = 0; j < SUBGRID_SIZE; j++) {
-                    if (grid[i + startRow][j + startCol] === num) {
-                        return false;
-                    }
-                }
-            }
-            return true;
         }
+        return true;
+    }
 
-        function solveSudoku(grid) {
-            for (let row = 0; row < GRID_SIZE; row++) {
-                for (let col = 0; col < GRID_SIZE; col++) {
-                    if (grid[row][col] === EMPTY) {
-                        for (let num = 1; num <= GRID_SIZE; num++) {
-                            if (isSafe(grid, row, col, num)) {
-                                grid[row][col] = num;
-                                if (solveSudoku(grid)) {
-                                    return true;
-                                }
-                                grid[row][col] = EMPTY;
-                            }
-                        }
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
 
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
+    function randomizeGrid(grid) {
+        shuffleArray(grid[0]);
 
-        function swapRows(grid, row1, row2) {
-            [grid[row1], grid[row2]] = [grid[row2], grid[row1]];
-        }
+        for (let i = 0; i < GRID_SIZE; i += SUBGRID_SIZE) {
+            const rows = [i, i + 1, i + 2];
+            const cols = [i, i + 1, i + 2];
 
-        function swapCols(grid, col1, col2) {
-            for (let i = 0; i < GRID_SIZE; i++) {
-                [grid[i][col1], grid[i][col2]] = [grid[i][col2], grid[i][col1]];
-            }
-        }
+            shuffleArray(rows);
+            shuffleArray(cols);
 
-        function randomizeGrid(grid) {
-            shuffleArray(grid[0]);
-
-            for (let i = 0; i < GRID_SIZE; i += SUBGRID_SIZE) {
-                const rows = [i, i + 1, i + 2];
-                const cols = [i, i + 1, i + 2];
-
-                shuffleArray(rows);
-                shuffleArray(cols);
-
-                swapRows(grid, i, rows[0]);
-                swapRows(grid, i + 1, rows[1]);
-                swapRows(grid, i + 2, rows[2]);
-                swapCols(grid, i, cols[0]);
+            swapRows(grid, i, rows[0]);
+            swapRows(grid, i + 1, rows[1]);
+            swapRows(grid, i + 2, rows[2]);
+            swapCols(grid, i, cols[0]);
             swapCols(grid, i + 1, cols[1]);
             swapCols(grid, i + 2, cols[2]);
         }
@@ -326,19 +357,6 @@
         return rotatedGrid;
     }
 
-    function generateFullGrid() {
-        const grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(EMPTY));
-        const numbers = Array.from({ length: GRID_SIZE }, (_, i) => i + 1);
-        shuffleArray(numbers);
-
-        for (let i = 0; i < GRID_SIZE; i++) {
-            grid[0][i] = numbers[i];
-        }
-
-        solveSudoku(grid);
-        return randomizeGrid(grid);
-    }
-
     function removeNumbers(grid, difficulty) {
         let attempts;
         switch (difficulty) {
@@ -365,39 +383,54 @@
         return grid;
     }
 
-    function generateSudokus() {
-        saveSettings();
+    function solveSudoku(grid) {
+        for (let row = 0; row < GRID_SIZE; row++) {
+            for (let col = 0; col < GRID_SIZE; col++) {
+                if (grid[row][col] === EMPTY) {
+                    for (let num = 1; num <= GRID_SIZE; num++) {
+                        if (isSafe(grid, row, col, num)) {
+                            grid[row][col] = num;
+                            if (solveSudoku(grid)) {
+                                return true;
+                            }
+                            grid[row][col] = EMPTY;
+                        }
+                    }
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
-        const difficulty = document.getElementById("difficulty").value;
-        const numPuzzles = parseInt(document.getElementById("numPuzzles").value, 10);
-        const hideSolutions = document.getElementById('hideSolutionsCheckbox').checked;
-        const sudokuContainer = document.getElementById("sudokuContainer");
-        sudokuContainer.innerHTML = '';
-
-        for (let i = 0; i < numPuzzles; i++) {
-            const solutionGrid = generateFullGrid();
-            const puzzleGrid = removeNumbers(solutionGrid.map(row => row.slice()), difficulty);
-            sudokuContainer.innerHTML += createSudokuHTML(puzzleGrid, solutionGrid, i + 1, hideSolutions);
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
         }
     }
 
-    function createSudokuHTML(puzzleGrid, solutionGrid, puzzleNum, hideSolutions) {
-        const solutionClass = hideSolutions ? 'hide-solutions' : '';
-        return `
-            <div class="puzzle-container">
-                <h2>Puzzle #${puzzleNum}</h2>
-                <div style="display: flex; align-items: flex-start;">
-                    <div>
-                        <table>${gridToHTML(puzzleGrid)}</table>
-                        <button onclick="copyGridToClipboard('${gridToDataURL(puzzleGrid)}')">Copy Puzzle to Clipboard</button>
-                    </div>
-                    <div class="solution-container ${solutionClass}">
-                        <table class="solution">${gridToHTML(solutionGrid)}</table>
-                        <button class="solution-button" onclick="copyGridToClipboard('${gridToDataURL(solutionGrid, 1)}')">Copy Solution to Clipboard</button>
-                    </div>
-                </div>
-            </div>
-        `;
+    function swapRows(grid, row1, row2) {
+        [grid[row1], grid[row2]] = [grid[row2], grid[row1]];
+    }
+
+    function swapCols(grid, col1, col2) {
+        for (let i = 0; i < GRID_SIZE; i++) {
+            [grid[i][col1], grid[i][col2]] = [grid[i][col2], grid[i][col1]];
+        }
+    }
+
+    function generateFullGrid() {
+        const grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(EMPTY));
+        const numbers = Array.from({ length: GRID_SIZE }, (_, i) => i + 1);
+        shuffleArray(numbers);
+
+        for (let i = 0; i < GRID_SIZE; i++) {
+            grid[0][i] = numbers[i];
+        }
+
+        solveSudoku(grid);
+        return randomizeGrid(grid);
     }
 
     function gridToHTML(grid) {
@@ -413,81 +446,191 @@
         `).join('');
     }
 
-    function gridToDataURL(grid, scale = 1) {
-        const cellSize = 70;
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+    function gridToDataURL(grid, pixelSize = 800) {
+    const cellSize = pixelSize / GRID_SIZE;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
 
-        canvas.width = cellSize * GRID_SIZE;
-        canvas.height = cellSize * GRID_SIZE;
+    // Set canvas width and height explicitly for high resolution
+    const scaleFactor = 4; // Scale for high resolution
+    canvas.width = pixelSize * scaleFactor;
+    canvas.height = pixelSize * scaleFactor;
 
-        ctx.scale(scale, scale);
-        ctx.font = "28px Arial";
+    // Scale context for high resolution rendering
+    ctx.scale(scaleFactor, scaleFactor);
 
-        for (let i = 0; i < GRID_SIZE; i++) {
-            for (let j = 0; j < GRID_SIZE; j++) {
-                const x = j * cellSize;
-                const y = i * cellSize;
-
-                const isBoldRow = (i + 1) % SUBGRID_SIZE === 0 && i !== GRID_SIZE - 1;
-                const isBoldCol = (j + 1) % SUBGRID_SIZE === 0 && j !== GRID_SIZE - 1;
-
-                const borderStyles = {
-                    bottom: isBoldRow ? 3 : 1,
-                    right: isBoldCol ? 3 : 1,
-                };
-
-                ctx.lineWidth = borderStyles.right;
-                ctx.beginPath();
-                ctx.moveTo(x + cellSize, y);
-                ctx.lineTo(x + cellSize, y + cellSize);
-                ctx.stroke();
-
-                ctx.lineWidth = borderStyles.bottom;
-                ctx.beginPath();
-                ctx.moveTo(x, y + cellSize);
-                ctx.lineTo(x + cellSize, y + cellSize);
-                ctx.stroke();
-
-                if (j === 0) {
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.moveTo(x, y);
-                    ctx.lineTo(x, y + cellSize);
-                    ctx.stroke();
-                }
-
-                if (i === 0) {
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.moveTo(x, y);
-                    ctx.lineTo(x + cellSize, y);
-                    ctx.stroke();
-                }
-
-                if (grid[i][j] !== EMPTY) {
-                    ctx.fillText(grid[i][j], x + 25, y + 45);
-                }
-            }
-        }
-
-        return canvas.toDataURL();
+    // Ensure canvas dimensions are not zero
+    if (canvas.width === 0 || canvas.height === 0) {
+        console.error("Canvas dimensions are zero.");
+        return null;
     }
 
-    function copyGridToClipboard(dataURL) {
+    // Clear canvas to ensure there's no leftover content
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Set font and alignment for number drawing
+    ctx.font = `${cellSize * 0.5}px Arial`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    // Define border thickness for all outer and inner borders
+    const outerBorderThickness = 3;
+    const innerBorderThickness = 1;
+    const boldSubGridBorderThickness = 3;
+
+    // Draw the grid and numbers
+    for (let i = 0; i < GRID_SIZE; i++) {
+        for (let j = 0; j < GRID_SIZE; j++) {
+            const x = j * cellSize;
+            const y = i * cellSize;
+
+            // Draw the grid lines
+            ctx.lineWidth = innerBorderThickness;
+            ctx.strokeRect(x, y, cellSize, cellSize);
+
+            // Draw bold borders for subgrids
+            if ((i + 1) % SUBGRID_SIZE === 0 && i !== GRID_SIZE - 1) {
+                ctx.lineWidth = boldSubGridBorderThickness;
+                ctx.beginPath();
+                ctx.moveTo(x, y + cellSize);
+                ctx.lineTo(x + cellSize * GRID_SIZE, y + cellSize);
+                ctx.stroke();
+            }
+            if ((j + 1) % SUBGRID_SIZE === 0 && j !== GRID_SIZE - 1) {
+                ctx.lineWidth = boldSubGridBorderThickness;
+                ctx.beginPath();
+                ctx.moveTo(x + cellSize, y);
+                ctx.lineTo(x + cellSize, y + cellSize * GRID_SIZE);
+                ctx.stroke();
+            }
+
+            // Draw the outer borders (equal thickness for all sides)
+            if (i === 0) { // Top border
+                ctx.lineWidth = outerBorderThickness;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(pixelSize, 0);
+                ctx.stroke();
+            }
+            if (i === GRID_SIZE - 1) { // Bottom border
+                ctx.lineWidth = outerBorderThickness;
+                ctx.beginPath();
+                ctx.moveTo(0, cellSize * GRID_SIZE);
+                ctx.lineTo(pixelSize, cellSize * GRID_SIZE);
+                ctx.stroke();
+            }
+            if (j === 0) { // Left border
+                ctx.lineWidth = outerBorderThickness;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(0, cellSize * GRID_SIZE);
+                ctx.stroke();
+            }
+            if (j === GRID_SIZE - 1) { // Right border
+                ctx.lineWidth = outerBorderThickness;
+                ctx.beginPath();
+                ctx.moveTo(cellSize * GRID_SIZE, 0);
+                ctx.lineTo(cellSize * GRID_SIZE, cellSize * GRID_SIZE);
+                ctx.stroke();
+            }
+
+            // Draw the numbers inside the cells
+            if (grid[i][j] !== EMPTY) {
+                ctx.fillText(grid[i][j], x + cellSize / 2, y + cellSize / 2);
+            }
+        }
+    }
+
+    return canvas.toDataURL("image/png"); // Return the base64 dataURL for the canvas
+}
+
+    function copyGridToClipboard(dataURL, pixelSize = 800) {
+        if (!dataURL) {
+            console.error("Data URL is invalid, cannot copy to clipboard.");
+            return;
+        }
+
         const img = new Image();
         img.src = dataURL;
+
         img.onload = () => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            canvas.toBlob(blob => {
+
+            // Set canvas dimensions
+            canvas.width = pixelSize;
+            canvas.height = pixelSize;
+
+            // Draw the image onto the canvas
+            ctx.drawImage(img, 0, 0, pixelSize, pixelSize);
+
+            // Ensure canvas content exists
+            if (canvas.width === 0 || canvas.height === 0) {
+                console.error("Canvas dimensions are zero.");
+                return;
+            }
+
+            // Convert the canvas content into a blob and copy to clipboard
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    console.error("Failed to create blob from canvas.");
+                    return;
+                }
                 const item = new ClipboardItem({ "image/png": blob });
-                navigator.clipboard.write([item]);
-            });
+                navigator.clipboard.write([item]).then(() => {
+                    console.log("Image copied to clipboard successfully!");
+                }).catch(err => {
+                    console.error("Failed to copy image to clipboard: ", err);
+                });
+            }, 'image/png');
         };
+
+        // Handle any error if the image fails to load
+        img.onerror = () => {
+            console.error("Error loading image for clipboard.");
+        };
+    }
+
+    function createSudokuHTML(puzzleGrid, solutionGrid, puzzleNum, hideSolutions) {
+        const puzzleClipboardSize = document.getElementById('puzzleClipboardSize').value;
+        const solutionClipboardSize = document.getElementById('solutionClipboardSize').value;
+        const solutionClass = hideSolutions ? 'hide-solutions' : '';
+        
+        // Ensure puzzle size is a valid number
+        const puzzleSize = parseInt(puzzleClipboardSize) || 800;
+        const solutionSize = parseInt(solutionClipboardSize) || 400;
+
+        return `
+            <div class="puzzle-container">
+                <h2>Puzzle #${puzzleNum}</h2>
+                <div style="display: flex; align-items: flex-start;">
+                    <div>
+                        <table>${gridToHTML(puzzleGrid)}</table>
+                        <button onclick="copyGridToClipboard('${gridToDataURL(puzzleGrid, puzzleSize)}', ${puzzleSize})">Copy Puzzle to Clipboard</button>
+                    </div>
+                    <div class="solution-container ${solutionClass}">
+                        <table class="solution">${gridToHTML(solutionGrid)}</table>
+                        <button class="solution-button" onclick="copyGridToClipboard('${gridToDataURL(solutionGrid, solutionSize)}', ${solutionSize})">Copy Solution to Clipboard</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function generateSudokus() {
+        saveSettings();
+
+        const difficulty = document.getElementById("difficulty").value;
+        const numPuzzles = parseInt(document.getElementById("numPuzzles").value, 10);
+        const hideSolutions = document.getElementById('hideSolutionsCheckbox').checked;
+        const sudokuContainer = document.getElementById("sudokuContainer");
+        sudokuContainer.innerHTML = '';
+
+        for (let i = 0; i < numPuzzles; i++) {
+            const solutionGrid = generateFullGrid();
+            const puzzleGrid = removeNumbers(solutionGrid.map(row => row.slice()), difficulty);
+            sudokuContainer.innerHTML += createSudokuHTML(puzzleGrid, solutionGrid, i + 1, hideSolutions);
+        }
     }
 </script>
 </body>
