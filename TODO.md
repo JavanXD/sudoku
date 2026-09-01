@@ -1,6 +1,6 @@
 # Sudoku — hosting TODO
 
-Product docs: [`README.md`](./README.md). Workspace migration: [`../TODO.md`](../TODO.md).
+Product docs: [`README.md`](./README.md). Workspace migration: [rasok.at docs/TODO.md](https://github.com/JavanXD/rasok.at/blob/main/docs/TODO.md).
 
 ## Live
 
