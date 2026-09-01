@@ -1,0 +1,25 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	// Script `sudoku` on account `rasok.at - Dev`. Canonical: sudoku.rasok.at.
+	// sudoku.javan.de stays on Javan Worker until redirect enabled + detach.
+	"name": "sudoku",
+	"account_id": "50fb3a347b42343ea037a40ec214ba4c",
+	"compatibility_date": "2026-08-30",
+	"workers_dev": false,
+	"preview_urls": false,
+	"routes": [
+		{
+			"pattern": "sudoku.rasok.at",
+			"custom_domain": true
+		}
+	],
+	"assets": {
+		"directory": "./public",
+		"html_handling": "auto-trailing-slash",
+		"not_found_handling": "404-page"
+	},
+	"observability": {
+		"enabled": true,
+		"head_sampling_rate": 1
+	}
+}

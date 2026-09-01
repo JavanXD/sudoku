@@ -2,6 +2,8 @@
 
 This project is a web-based **Sudoku Generator Tool**, built using HTML, JavaScript, and CSS. It allows users to generate Sudoku puzzles of varying difficulty, copy puzzles and solutions to the clipboard, and paste them into other applications.
 
+**Live:** [https://sudoku.rasok.at/](https://sudoku.rasok.at/)
+
 ## Features
 
 - **Three Difficulty Levels**: Easy, Medium, Hard.
@@ -18,7 +20,9 @@ This project is a web-based **Sudoku Generator Tool**, built using HTML, JavaScr
    cd sudoku
    ```
 
-2. **Open `index.html`** in any web browser to access the Sudoku Generator.
+2. **Open `public/index.html`** in any web browser to access the Sudoku Generator.
+
+   Or run locally via Wrangler: `npm install && npm run dev`.
 
 ## Usage Instructions
 
