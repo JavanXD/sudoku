@@ -4,19 +4,21 @@ Product docs: [`README.md`](./README.md). Workspace migration: [rasok.at docs/TO
 
 ## Live
 
-- Canonical: `https://sudoku.rasok.at/` — Worker **`sudoku`** on **`rasok.at - Dev`** (smoked 2026-08-31)
-- Alias until cutover: `https://sudoku.javan.de/` — still on Javan Worker `sudoku`
+- Canonical: `https://sudoku.rasok.at/` — Worker **`sudoku`** on **`rasok.at - Dev`**
+- Legacy: `https://sudoku.javan.de/` → **301** path+query → `https://sudoku.rasok.at/` (zone Single Redirect on `javan.de`, enabled)
 - Platform URLs: `workers_dev` / `preview_urls` disabled
-- Redirect staged **disabled**: `76fca8bb6e8843e7b612f91067fcf89d` (`sudoku.javan.de` → `sudoku.rasok.at`)
+- GitHub: repo homepage `https://sudoku.rasok.at/`; **GitHub Pages disabled** (hosting is Workers, not Pages)
 
 ## Deploy notes
 
 - Static assets from `public/` (`wrangler.jsonc`); `account_id` → Dev.
 - Workspace path contains `*` — deploy from a `/tmp/…` copy.
+- GHA secrets `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` → Dev (`builtby-rasok-at.env`)
 
 ## Follow-ups
 
 - [x] Move Worker to **`rasok.at - Dev`** with zone `rasok.at`
-- [ ] Enable redirect → drop `sudoku.javan.de` custom domain / Javan Worker
-- [ ] Update `javan.de` sitemap / `projects.javan.de` links to `sudoku.rasok.at`
-- [ ] Add GHA secrets for `.github/workflows/deploy.yml` (Dev account)
+- [x] Enable redirect → drop `sudoku.javan.de` custom domain / Javan Worker *(redirect already live; no Javan `sudoku` script; DNS `AAAA 100::` proxied for redirect-only)*
+- [x] Update `javan.de` sitemap / `projects.javan.de` links to `sudoku.rasok.at` *(projects already rasok.at; removed `sudoku.javan.de` from `sitemap-links.json` 2026-09-10)*
+- [x] Add GHA secrets for `.github/workflows/deploy.yml` (Dev account) *(2026-09-10)*
+- [x] GitHub Pages: remove `sudoku.javan.de` custom domain; disable Pages *(2026-09-10 — cannot attach `sudoku.rasok.at` to Pages without stealing Worker DNS)*

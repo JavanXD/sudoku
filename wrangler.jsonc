@@ -1,7 +1,7 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	// Script `sudoku` on account `rasok.at - Dev`. Canonical: sudoku.rasok.at.
-	// sudoku.javan.de stays on Javan Worker until redirect enabled + detach.
+	// Legacy sudoku.javan.de → 301 via javan.de zone Single Redirect.
 	"name": "sudoku",
 	"account_id": "50fb3a347b42343ea037a40ec214ba4c",
 	"compatibility_date": "2026-08-30",

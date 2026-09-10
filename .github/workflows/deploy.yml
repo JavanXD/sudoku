@@ -1,7 +1,7 @@
 # Deploy Sudoku to Cloudflare Workers (static assets)
 
 # Canonical host: https://sudoku.rasok.at/
-# (also served on sudoku.javan.de during cutover)
+# Legacy sudoku.javan.de → 301 on javan.de zone
 
 name: Deploy to Cloudflare Workers
 
