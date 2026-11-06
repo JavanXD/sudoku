@@ -2,7 +2,9 @@
 
 This project is a web-based **Sudoku Generator Tool**, built using HTML, JavaScript, and CSS. It allows users to generate Sudoku puzzles of varying difficulty, copy puzzles and solutions to the clipboard, and paste them into other applications.
 
-**Live:** [https://sudoku.rasok.at/](https://sudoku.rasok.at/)
+**Live:** [https://sudoku.rasok.at/](https://sudoku.rasok.at/) · **Local:** `npm run dev` → [http://127.0.0.1:8787/](http://127.0.0.1:8787/)
+
+Legacy `sudoku.javan.de` **301**s to the live host (path + query). Canonical URL is always `https://sudoku.rasok.at/`.
 
 ## Features
 

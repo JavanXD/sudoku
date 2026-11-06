@@ -22,3 +22,4 @@ Product docs: [`README.md`](./README.md). Workspace migration: [rasok.at docs/TO
 - [x] Update `javan.de` sitemap / `projects.javan.de` links to `sudoku.rasok.at` *(projects already rasok.at; removed `sudoku.javan.de` from `sitemap-links.json` 2026-09-10)*
 - [x] Add GHA secrets for `.github/workflows/deploy.yml` (Dev account) *(2026-09-10)*
 - [x] GitHub Pages: remove `sudoku.javan.de` custom domain; disable Pages *(2026-09-10 — cannot attach `sudoku.rasok.at` to Pages without stealing Worker DNS)*
+- [x] GSC “Duplicate without user-selected canonical” *(2026-09-27: root cause = no `<link rel="canonical">` on live HTML; redirect already correct. Shipped canonical → `https://sudoku.rasok.at/`, `robots.txt` + `sitemap.xml`. Commit/push still pending.)*
